@@ -9,7 +9,7 @@ import { env } from '../config/env';
 import { DropReservation } from '../models/drop-reservation';
 import { PoapDrop } from '../models/poap-drop';
 
-/**∂
+/**
  * Installs new route on the provided application.
  * @param app ExpressJS application.
  */
@@ -27,7 +27,7 @@ export async function resolve(req: Request, res: Response): Promise<void> {
   }
 
   const identity = new Identity(null);
-  const { isValid } = await identity.validateEvmWalletSignature({
+  const { isValid } = identity.validateEvmWalletSignature({
     walletAddress: body.address,
     signature: body.signature,
     signatureValidityMinutes: 10,
@@ -84,7 +84,10 @@ export async function resolve(req: Request, res: Response): Promise<void> {
   }).collection(poapDrop.collectionUuid);
 
   try {
-    const res = await collection.mint(wallet, 1);
+    const res = await collection.mint({
+      receivingAddress: wallet,
+      quantity: 1,
+    });
     dropReservation.airdropStatus = res.success
       ? AirdropStatus.AIRDROP_COMPLETED
       : AirdropStatus.AIRDROP_ERROR;
@@ -101,5 +104,5 @@ export async function resolve(req: Request, res: Response): Promise<void> {
   }
 
   await dropReservation.update();
-  return res.respond(200, { success: 'ok' });
+  return res.respond(200, { success: true });
 }
