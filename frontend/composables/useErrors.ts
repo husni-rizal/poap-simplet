@@ -22,7 +22,7 @@ export default function useErrors() {
       },
       {
         default: () => props.content,
-      }
+      },
     );
   };
 

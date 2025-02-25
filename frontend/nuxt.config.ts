@@ -1,6 +1,7 @@
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { Environments } from './lib/values/general.values';
 import { getConfig } from './lib/utils/utils';
 
@@ -18,7 +19,7 @@ const meta = {
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      API_BASE: CONFIG.API_BASE || 'http://localhost:3001/',
+      ...CONFIG,
       ENV: env || Environments.dev,
     },
   },
@@ -47,10 +48,19 @@ export default defineNuxtConfig({
           },
         ],
       }),
-
       Components({
         resolvers: [NaiveUiResolver()],
       }),
+      nodePolyfills(),
+      {
+        name: 'vite-plugin-glob-transform',
+        transform(code: string, id: string) {
+          if (id.includes('nuxt-icons')) {
+            return code.replace(/as:\s*['"]raw['"]/g, 'query: "?raw", import: "default"');
+          }
+          return code;
+        },
+      },
     ],
 
     optimizeDeps: {
@@ -67,7 +77,9 @@ export default defineNuxtConfig({
         ? ['naive-ui', 'vueuc', '@css-render/vue3-ssr', '@juggle/resize-observer']
         : ['@juggle/resize-observer'],
   },
+
   ssr: false,
+
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
@@ -82,12 +94,20 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#070707' },
         { name: 'description', content: meta.description, hid: 'description' },
         { name: 'og:title', content: meta.title, hid: 'og:title' },
-        { name: 'og:description', content: meta.description, hid: 'og:description' },
+        {
+          name: 'og:description',
+          content: meta.description,
+          hid: 'og:description',
+        },
         { name: 'og:url', content: meta.url, hid: 'og:url' },
         // { name: 'og:image', content: meta.image },
         { name: 'og:type', content: 'website' },
         { name: 'twitter:title', content: meta.title, hid: 'twitter:title' },
-        { name: 'twitter:description', content: meta.description, hid: 'twitter:description' },
+        {
+          name: 'twitter:description',
+          content: meta.description,
+          hid: 'twitter:description',
+        },
         { name: 'twitter:url', content: meta.url, hid: 'twitter:url' },
         { name: 'twitter:card', content: 'summary_large_image' },
       ],
@@ -111,4 +131,5 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
+  compatibilityDate: '2025-02-21',
 });

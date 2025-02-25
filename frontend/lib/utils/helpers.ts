@@ -1,3 +1,6 @@
+import type { PaginationProps } from 'naive-ui';
+import { PageSize, PAGINATION_LIMIT } from '../values/general.values';
+
 export function sleep(timeMs = 1000) {
   return new Promise(resolve => setTimeout(resolve, timeMs));
 }
@@ -73,4 +76,32 @@ export function areArraysEqual(a1: any, a2: any, sorted = false) {
 
 export function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text);
+}
+
+/**
+ * Enum
+ */
+export function enumKeys(E: any): string[] {
+  return Object.keys(E).filter(k => isNaN(Number(k)));
+}
+export function enumValues(E: any): string[] | number[] {
+  return enumKeys(E).map(k => E[k as any]);
+}
+export function enumKeyValues(E: any): KeyValue[] {
+  return enumKeys(E).map(k => {
+    return { key: k, label: k, value: E[k as any] };
+  });
+}
+
+export function createPagination(remote = true) {
+  return {
+    itemCount: remote ? 0 : undefined,
+    page: remote ? 1 : undefined,
+    pageSize: PAGINATION_LIMIT,
+    showSizePicker: true,
+    pageSizes: enumValues(PageSize) as number[],
+    prefix({ itemCount }: { itemCount: number }) {
+      return `${itemCount} total`;
+    },
+  } as PaginationProps;
 }

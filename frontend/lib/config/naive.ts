@@ -1,5 +1,5 @@
 import type { GlobalThemeOverrides, MessageProviderProps } from 'naive-ui';
-import colors from '~~/tailwind.colors';
+import { colors } from '~/tailwind.config';
 
 type MessageThemeOverrides = NonNullable<MessageProviderProps['themeOverrides']>;
 const messageOverrides: MessageThemeOverrides = {
@@ -50,7 +50,7 @@ const messageOverrides: MessageThemeOverrides = {
 export const NaiveTheme: GlobalThemeOverrides = {
   common: {
     baseColor: colors.bg.DEFAULT,
-    bodyColor: colors.bg.DEFAULT,
+    bodyColor: colors.bg.dark,
     errorColor: colors.pink,
     fontFamily: 'Inter',
     fontSize: '16px',
@@ -64,7 +64,12 @@ export const NaiveTheme: GlobalThemeOverrides = {
   },
   Button: {
     border: `1px solid ${colors.bg.lighter}`,
-    borderDisabled: `1px solid ${colors.bg.lighter}`,
+    borderDisabled: `1px solid ${colors.bodyDark}`,
+    borderDisabledError: `1px solid ${colors.bodyDark}`,
+    borderDisabledInfo: `1px solid ${colors.bodyDark}`,
+    borderDisabledPrimary: `1px solid ${colors.bodyDark}`,
+    borderDisabledSuccess: `1px solid ${colors.bodyDark}`,
+    borderDisabledWarning: `1px solid ${colors.bodyDark}`,
     borderError: `1px solid ${colors.bg.lighter}`,
     borderFocusError: `1px solid ${colors.pink}`,
     borderHoverError: `1px solid ${colors.pink}`,
@@ -179,7 +184,7 @@ export const NaiveTheme: GlobalThemeOverrides = {
     borderError: `1px solid ${colors.pink}`,
     borderFocusError: `1px solid ${colors.pink}`,
     borderHoverError: `1px solid ${colors.pink}`,
-    borderDisabled: `1px solid ${colors.bg.lighter}`,
+    borderDisabled: `1px solid ${colors.bodyDark}`,
     borderRadius: '8px',
     boxShadowFocus: 'none',
     boxShadowFocusError: 'none',
@@ -230,7 +235,7 @@ export const NaiveTheme: GlobalThemeOverrides = {
         closeColorHover: 'inherit',
         closeMargin: '-24px -24px 0 0',
         contentMargin: '16px 0',
-        padding: '64px 64px 32px',
+        padding: '64px',
       },
     },
   },
@@ -256,6 +261,7 @@ export const NaiveTheme: GlobalThemeOverrides = {
         heightTiny: '32px',
       },
       InternalSelectMenu: {
+        actionTextColor: colors.white,
         borderRadius: '8px',
         color: colors.bg.dark,
         optionCheckColor: colors.bg.lighter,
@@ -265,13 +271,12 @@ export const NaiveTheme: GlobalThemeOverrides = {
         optionHeightLarge: '48px',
         optionHeightMedium: '48px',
         optionHeightSmall: '32px',
-        paddingSmall: '0px 10px',
-        paddingMedium: '0px 10px',
-        paddingLarge: '0px 20px',
-        actionTextColor: colors.white,
         optionTextColor: colors.white,
         optionTextColorActive: colors.white,
         optionTextColorPressed: colors.white,
+        paddingSmall: '0px 10px',
+        paddingMedium: '0px 10px',
+        paddingLarge: '0px 20px',
       },
     },
   },
@@ -283,11 +288,14 @@ export const NaiveTheme: GlobalThemeOverrides = {
   },
   DataTable: {
     borderColor: colors.bg.lighter,
-    tdColor: colors.bg.DEFAULT,
-    tdColorHover: colors.bg.dark,
+    tdColor: colors.transparent,
+    tdColorHover: colors.transparent,
     tdTextColor: colors.white,
-    thColor: colors.bg.DEFAULT,
-    thColorHover: colors.bg.DEFAULT,
+    thColor: colors.transparent,
+    thColorHoverModal: colors.transparent,
+    thColorHoverPopover: colors.transparent,
+    thColorModal: colors.transparent,
+    thColorHover: colors.transparent,
     thFontWeight: '700',
     thTextColor: colors.white,
   },

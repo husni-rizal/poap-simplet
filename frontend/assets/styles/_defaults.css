@@ -53,7 +53,7 @@ video {
   height: auto;
 }
 
-button:not(.n-button) {
+button.default {
   background: none;
   border: none;
   padding: 0;
@@ -73,4 +73,14 @@ select:autofill:focus {
   border: none;
   -webkit-text-fill-color: theme('colors.white');
   -webkit-box-shadow: 0 0 0px 1000px #1e212b inset;
+}
+
+.border-card {
+  @apply border border-bg-lighter rounded-2xl;
+}
+.card {
+  @apply bg-bg rounded-2xl p-6 md:p-8 lg:p-10 xl:p-12;
+}
+.card-dark {
+  @apply card !bg-bg-dark border-card;
 }

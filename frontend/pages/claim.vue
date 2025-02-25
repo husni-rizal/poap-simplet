@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { useAccount, useConnect, useWalletClient } from 'use-wagmi';
+import { useAccount, useConnect, useConnectorClient, type Config } from '@wagmi/vue';
+import { signMessage } from '@wagmi/vue/actions';
 import SuccessSVG from '~/assets/images/success.svg';
 
 definePageMeta({
@@ -14,9 +15,10 @@ const router = useRouter();
 const message = useMessage();
 const { handleError } = useErrors();
 
-const { address, isConnected } = useAccount();
-const { data: walletClient, refetch } = useWalletClient();
-const { connect, connectors, isLoading } = useConnect();
+const { address, isConnected, isConnecting } = useAccount();
+const { data: walletClient, refetch } = useConnectorClient();
+const { connect, connectors } = useConnect();
+const { $wagmiConfig } = useNuxtApp();
 
 const loading = ref<boolean>(false);
 const claimed = ref<boolean>(false);
@@ -30,20 +32,8 @@ onBeforeMount(() => {
 async function claimAirdrop() {
   loading.value = true;
   try {
-    await refetch();
     const timestamp = new Date().getTime();
-
-    if (!walletClient.value) {
-      await connect({ connector: connectors.value[0] });
-
-      if (!walletClient.value) {
-        message.error('Could not connect with wallet');
-        loading.value = false;
-        return;
-      }
-    }
-
-    const signature = await walletClient.value.signMessage({ message: `test\n${timestamp}` });
+    const signature = await signMessage($wagmiConfig as Config, { message: `test\n${timestamp}` });
     const res = await $api.post<SuccessResponse>('/claim', {
       jwt: query.token?.toString() || '',
       signature,
@@ -68,10 +58,7 @@ async function claimAirdrop() {
 
     <div class="my-8 text-center">
       <h3 class="mb-6">Great Success!</h3>
-      <p>
-        You have successfully received POAP NFT, which you can use to proove that you were part of
-        the event.
-      </p>
+      <p>You have successfully received POAP NFT, which you can use to proove that you were part of the event.</p>
     </div>
   </div>
   <div v-else class="max-w-md w-full md:px-6 my-12 mx-auto">
@@ -80,17 +67,12 @@ async function claimAirdrop() {
     <div class="my-8 text-center">
       <h3 class="mb-6">Great Success!</h3>
       <p>
-        To claim your POAP (NFT airdrop), you need to connect your EVM compatible wallet. This step
-        is crucial for securely receiving and managing the airdropped NFTs.
+        To claim your POAP (NFT airdrop), you need to connect your EVM compatible wallet. This step is crucial for
+        securely receiving and managing the airdropped NFTs.
       </p>
     </div>
 
-    <Btn
-      v-if="!isConnected"
-      size="large"
-      :loading="isLoading"
-      @click="connect({ connector: connectors[0] })"
-    >
+    <Btn v-if="!isConnected" size="large" :loading="isConnecting" @click="connect({ connector: connectors[0] })">
       Connect wallet
     </Btn>
     <Btn v-else size="large" :loading="loading" @click="claimAirdrop()">Claim airdrop</Btn>

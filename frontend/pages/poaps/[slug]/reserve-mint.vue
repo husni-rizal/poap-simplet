@@ -1,9 +1,7 @@
 <template>
-  <div v-if="poapStore.poap" class="grid justify-items-center">
+  <div v-if="poapStore.poapDrop" class="grid justify-items-center">
     <div v-if="dropReserved == true">
-      <p>
-        You have successfully reserved nft airdrop. Check your mail for instructions on how to mint.
-      </p>
+      <p>You have successfully reserved nft airdrop. Check your mail for instructions on how to mint.</p>
     </div>
 
     <div v-if="dropReserved != true">
@@ -12,19 +10,9 @@
       </div>
       <div v-if="isTokenValid == true" style="width: 500px">
         <h1>Enter your email to reserve NFT</h1>
-        <n-form
-          ref="formRef"
-          :model="formData"
-          :rules="rules"
-          class="mt-8"
-          @submit.prevent="handleSubmit"
-        >
+        <n-form ref="formRef" :model="formData" :rules="rules" class="mt-8" @submit.prevent="handleSubmit">
           <!--  Project Quota value -->
-          <n-form-item
-            path="email"
-            label="Enter your email to receive instructions"
-            :label-props="{ for: 'email' }"
-          >
+          <n-form-item path="email" label="Enter your email to receive instructions" :label-props="{ for: 'email' }">
             <n-input v-model:value="formData.email" clearable />
           </n-form-item>
 
@@ -56,7 +44,8 @@
 <script lang="ts" setup>
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
-import { FormInst, FormRules, FormValidationError } from 'naive-ui/es/form';
+import type { FormInst, FormRules, FormValidationError } from 'naive-ui/es/form';
+import type { PoapReservationResponse } from '~/lib/types/poap';
 
 definePageMeta({
   layout: 'reserve',
@@ -75,6 +64,7 @@ const tokenValidityInPercent = ref(100);
 const dropReserved = ref(false);
 let calcRemainingTimeInterval: any = null as any;
 
+const poapId = ref<string>(`${params?.slug}`);
 const token = query.token?.toString();
 
 const formRef = ref<FormInst | null>(null);
@@ -96,9 +86,7 @@ function handleSubmit(e: Event | MouseEvent) {
   e.preventDefault();
   formRef.value?.validate((errors: Array<FormValidationError> | undefined) => {
     if (errors) {
-      errors.map(fieldErrors =>
-        fieldErrors.map(error => message.warning(error.message || 'Error'))
-      );
+      errors.map(fieldErrors => fieldErrors.map(error => message.warning(error.message || 'Error')));
     } else {
       reserveMint();
     }
@@ -106,13 +94,15 @@ function handleSubmit(e: Event | MouseEvent) {
 }
 
 onMounted(() => {
+  const route = useRoute();
+  console.log(route);
   if (token) {
     const decoded = jwtDecode(token);
     console.info(decoded);
 
-    const tokenIssueDate = dayjs(decoded.iat * 1000);
+    const tokenIssueDate = Number(dayjs(decoded.iat * 1000));
     // Token should not be older than 7 seconds (7000 ms)
-    if (dayjs() - tokenIssueDate > 7000) {
+    if (Number(dayjs()) - tokenIssueDate > 7000) {
       console.log('Token is too old!');
       isTokenValid.value = false;
     } else {
@@ -120,11 +110,11 @@ onMounted(() => {
       isTokenValid.value = true;
     }
 
-    if (!poapStore.poap) poapStore.getPoapDrop(params?.slug);
+    if (!poapStore.poapDrop) poapStore.getPoapDrop(poapId.value);
 
     calcRemainingTimeInterval = setInterval(() => {
       const currDate = dayjs();
-      const tokenAgeInMs = currDate - tokenIssueDate;
+      const tokenAgeInMs = Number(currDate) - tokenIssueDate;
 
       tokenValidityInPercent.value = 100 - (tokenAgeInMs * 100) / 300000;
 
@@ -144,13 +134,13 @@ onBeforeUnmount(() => {
 async function reserveMint() {
   loading.value = true;
   try {
-    const res: any = await $api.post(`/poap-drops/${params.slug}/reserve-drop`, formData);
-    if (res.data.id) {
+    const { data } = await $api.post<PoapReservationResponse>(`/poap-drops/${params.slug}/reserve-drop`, formData);
+    if (data.id) {
       dropReserved.value = true;
       clearInterval(calcRemainingTimeInterval);
     }
   } catch (err: any) {
-    handleError();
+    handleError(err);
     // message.error(`Error reserving mint. ${apiErrorToMsg(err.data)}`);
   }
 

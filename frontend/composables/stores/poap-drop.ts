@@ -1,61 +1,70 @@
 import { defineStore } from 'pinia';
-import { WebStorageKeys } from '~/lib/values/general.values';
+import type {
+  PoapInterface,
+  PoapReservationInterface,
+  PoapReservationsResponse,
+  PoapResponse,
+  PoapsResponse,
+} from '~/lib/types/poap';
+import { PAGINATION_ALL_ITEMS } from '~/lib/values/general.values';
 
 export const usePoapDropStore = defineStore('poapDrop', {
   state: () => ({
-    poapDrops: undefined,
-    poapDrop: undefined,
-    dropReservations: undefined,
+    poapDrops: {
+      items: [] as PoapInterface[],
+      loading: false,
+      total: 0,
+    },
+    poapDrop: undefined as PoapInterface | undefined,
+    dropReservations: {
+      items: [] as PoapReservationInterface[],
+      loading: false,
+      total: 0,
+    },
   }),
 
-  getters: {
-    poaps(state) {
-      return state.poapDrops;
-    },
-    poap(state) {
-      return state.poapDrop;
-    },
-    reservations(state) {
-      return state.dropReservations;
-    },
-  },
+  getters: {},
 
   actions: {
     async getPoapDrops(args: FetchParams = {}) {
+      this.poapDrops.loading = true;
       try {
         const params = parseArguments(args);
         // Get poap drops
-        const poapDropsApiResponse = await $api.get('/poap-drops', params);
-        this.poapDrops = (poapDropsApiResponse as any).data;
+        const { data } = await $api.get<PoapsResponse>('/poap-drops', params);
+        this.poapDrops.items = data.items;
+        this.poapDrops.total = data.total;
       } catch (e: any) {
         console.error(e);
+        this.poapDrops.items = [];
+        this.poapDrops.total = 0;
       }
+      this.poapDrops.loading = false;
     },
-    async getPoapDrop(dropId) {
+    async getPoapDrop(dropId: number | string) {
       try {
         // Get poap drop
-        const poapDropApiResponse = await $api.get(`/poap-drops/${dropId}`);
-        this.poapDrop = (poapDropApiResponse as any).data;
+        const { data } = await $api.get<PoapResponse>(`/poap-drops/${dropId}`);
+        this.poapDrop = data;
       } catch (e: any) {
         console.error(e);
       }
     },
-    async getPoapDropReservations(dropId) {
+    async getPoapDropReservations(dropId: number | string) {
+      this.dropReservations.loading = true;
       try {
-        // Get poap drop reservations
-        const dropReservationsApiResponse = await $api.get(
-          `/poap-drops/${dropId}/drop-reservations`
+        const { data } = await $api.get<PoapReservationsResponse>(
+          `/poap-drops/${dropId}/drop-reservations`,
+          PAGINATION_ALL_ITEMS
         );
-        this.dropReservations = (dropReservationsApiResponse as any).data;
+        this.dropReservations.items = data.items;
+        this.dropReservations.total = data.total;
       } catch (e: any) {
         console.error(e);
+        this.dropReservations.items = [];
+        this.dropReservations.total = 0;
       }
+      this.dropReservations.loading = false;
     },
-  },
-
-  persist: {
-    key: WebStorageKeys.USER,
-    storage: persistedState.localStorage,
-    paths: ['jwt', 'userId', 'username', 'email'],
   },
 });

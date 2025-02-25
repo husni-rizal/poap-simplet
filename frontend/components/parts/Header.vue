@@ -7,8 +7,7 @@
       </RouterLink>
     </div>
     <div v-if="!showConnect" class="w-1/3"></div>
-    <div v-else :class="{ 'w-1/3 text-right': logoCenter }">
-      <span v-if="address && (!admin || userStore.jwt)" class="mr-4">{{ shortHash(address) }}</span>
+    <div v-else class="flex gap-2" :class="{ 'w-1/3 text-right': logoCenter }">
       <Btn
         v-if="isConnected && (!admin || userStore.jwt)"
         size="small"
@@ -17,23 +16,10 @@
         @click="disconnectWallet()"
       >
         Disconnect
+        <small v-if="address"> ({{ shortHash(address) }}) </small>
       </Btn>
-      <Btn
-        v-else-if="isConnected"
-        size="small"
-        :color="colors.blue"
-        :loading="loading"
-        @click="login()"
-      >
-        Login
-      </Btn>
-      <Btn
-        v-else
-        size="small"
-        :color="colors.blue"
-        :loading="loading"
-        @click="modalWalletVisible = true"
-      >
+      <Btn v-else-if="isConnected" size="small" :color="colors.blue" :loading="loading" @click="login()"> Login </Btn>
+      <Btn v-else size="small" :color="colors.blue" :loading="loading" round @click="modalWalletVisible = true">
         Connect wallet
       </Btn>
     </div>
@@ -44,13 +30,32 @@
     @close="() => (modalWalletVisible = false)"
     @update:show="modalWalletVisible = false"
   >
-    <FormWallet />
+    <FormWallet>
+      <EmbeddedWallet
+        :clientId="config.public.EMBEDDED_WALLET_CLIENT"
+        passkeyAuthMode="tab_form"
+        :defaultNetworkId="network.id"
+        :networks="[
+          {
+            name: network.name,
+            id: network.id,
+            rpcUrl: network.rpcUrls.default.http[0],
+            explorerUrl: network.blockExplorers.default.url,
+          },
+        ]"
+        @click="connectEmbeddedWallet"
+      />
+    </FormWallet>
   </modal>
 </template>
 
 <script lang="ts" setup>
-import { useAccount, useConnect, useDisconnect, useWalletClient } from 'use-wagmi';
-import colors from '~/tailwind.colors';
+import { useAccount, useConnect, useDisconnect, useConnectorClient, useAccountEffect, type Config } from '@wagmi/vue';
+import { EmbeddedWallet } from '@apillon/wallet-vue';
+import { signMessage } from '@wagmi/vue/actions';
+import { moonbeam, moonbaseAlpha } from '@wagmi/vue/chains';
+import { Environments } from '~/lib/values/general.values';
+import { colors } from '~/tailwind.config';
 
 type LoginInterface = {
   jwt: string;
@@ -63,17 +68,28 @@ const props = defineProps({
   showConnect: { type: Boolean, default: true },
 });
 
+const config = useRuntimeConfig();
 const { error } = useMessage();
 const userStore = useUserStore();
 const { handleError } = useErrors();
 
 const { connect, connectors } = useConnect();
-const { data: walletClient, refetch } = useWalletClient();
-const { address, isConnected } = useAccount({ onConnect: loginDelay });
+const { data: walletClient, refetch } = useConnectorClient();
+const { address, isConnected } = useAccount();
 const { disconnect } = useDisconnect();
+const { $wagmiConfig } = useNuxtApp();
+
+useAccountEffect({
+  onConnect: () => loginDelay(),
+});
 
 const loading = ref<boolean>(false);
 const modalWalletVisible = ref<boolean>(false);
+const network = config.public.ENV === Environments.prod ? moonbeam : moonbaseAlpha;
+
+function connectEmbeddedWallet() {
+  modalWalletVisible.value = false;
+}
 
 async function login() {
   loading.value = true;
@@ -101,9 +117,8 @@ async function login() {
       const timestamp = new Date().getTime();
       const message = 'test';
 
-      const signature = await walletClient.value.signMessage({
-        message: `${message}\n${timestamp}`,
-      });
+      const signature = await signMessage($wagmiConfig as Config, { message: `${message}\n${timestamp}` });
+
       const res = await $api.post<LoginResponse>('/login', {
         signature,
         timestamp,

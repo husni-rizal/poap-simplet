@@ -9,9 +9,7 @@ h1,
 /* Headline 2 */
 h2,
 .h2 {
-  @apply font-sans font-bold;
-  font-size: 1.5rem;
-  line-height: 1.5;
+  @apply font-newSpirit font-medium text-4xl;
 
   + p {
     @apply mt-2;
@@ -44,6 +42,7 @@ h4,
 /* Headline 5 */
 h5,
 .h5 {
+  @apply font-sans font-bold;
   font-size: 1rem;
   line-height: 1.6;
 }

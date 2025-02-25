@@ -284,6 +284,12 @@ body > .n-message-container {
       }
     }
   }
+
+  &.hide-header {
+    &.n-dialog .n-dialog__content {
+      @apply mt-0;
+    }
+  }
 }
 
 /** Pagination */
@@ -329,6 +335,12 @@ body > .n-message-container {
         display: none;
       }
     }
+  }
+}
+.n-select-menu {
+  @apply border-card !rounded-xl overflow-hidden;
+  .v-vl-visible-items {
+    @apply py-1;
   }
 }
 
