@@ -43,9 +43,7 @@ const immediatelyShowQr = ref(false);
 
 async function navigateToReserveDrop() {
   try {
-    const { data } = await $api.get<GeneralResponse<{ token: string }>>(
-      `/poap-drops/${props.poapId}/drop-reservation-token`
-    );
+    const { data } = await $api.get<TokenResponse>(`/poap-drops/${props.poapId}/drop-reservation-token`);
     router.push(`/poaps/${props.poapId}/reserve-mint?token=${data.token}`);
   } catch (error) {
     console.error(error);

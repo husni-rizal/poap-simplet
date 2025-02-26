@@ -1,7 +1,7 @@
 <template>
   <n-layout class="relative h-screen" :native-scrollbar="false">
     <Header :admin="true" />
-    <div class="page-container flex-grow pb-32 pt-1 md:pt-12">
+    <div class="container flex-grow pb-8 md:pb-16 pt-4 md:pt-8">
       <slot />
     </div>
   </n-layout>

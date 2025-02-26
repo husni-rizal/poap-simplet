@@ -9,16 +9,16 @@
     <div v-if="!showConnect" class="w-1/3"></div>
     <div v-else class="flex gap-2" :class="{ 'w-1/3 text-right': logoCenter }">
       <Btn
-        v-if="isConnected && (!admin || userStore.jwt)"
+        v-if="connected && (!admin || userStore.jwt)"
         size="small"
         :color="colors.blue"
         :loading="loading"
         @click="disconnectWallet()"
       >
         Disconnect
-        <small v-if="address"> ({{ shortHash(address) }}) </small>
+        <small v-if="walletAddress"> ({{ shortHash(walletAddress) }}) </small>
       </Btn>
-      <Btn v-else-if="isConnected" size="small" :color="colors.blue" :loading="loading" @click="login()"> Login </Btn>
+      <Btn v-else-if="connected" size="small" :color="colors.blue" :loading="loading" @click="login()"> Login </Btn>
       <Btn v-else size="small" :color="colors.blue" :loading="loading" round @click="modalWalletVisible = true">
         Connect wallet
       </Btn>
@@ -50,8 +50,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useAccount, useConnect, useDisconnect, useConnectorClient, useAccountEffect, type Config } from '@wagmi/vue';
-import { EmbeddedWallet } from '@apillon/wallet-vue';
+import { useAccount, useDisconnect, useAccountEffect, type Config } from '@wagmi/vue';
+import { EmbeddedWallet, useAccount as useAccountEW, useWallet } from '@apillon/wallet-vue';
+import { type Events } from '@apillon/wallet-sdk';
 import { signMessage } from '@wagmi/vue/actions';
 import { moonbeam, moonbaseAlpha } from '@wagmi/vue/chains';
 import { Environments } from '~/lib/values/general.values';
@@ -69,12 +70,14 @@ const props = defineProps({
 });
 
 const config = useRuntimeConfig();
-const { error } = useMessage();
 const userStore = useUserStore();
 const { handleError } = useErrors();
 
-const { connect, connectors } = useConnect();
-const { data: walletClient, refetch } = useConnectorClient();
+/** Apillon Embedded wallet */
+const { info } = useAccountEW();
+const { wallet, signMessage: signEW } = useWallet();
+
+/** Wagmi */
 const { address, isConnected } = useAccount();
 const { disconnect } = useDisconnect();
 const { $wagmiConfig } = useNuxtApp();
@@ -87,6 +90,32 @@ const loading = ref<boolean>(false);
 const modalWalletVisible = ref<boolean>(false);
 const network = config.public.ENV === Environments.prod ? moonbeam : moonbaseAlpha;
 
+const connected = computed(() => isConnected.value || !!info.activeWallet?.address);
+const walletAddress = computed(() => (isConnected.value ? address.value : info.activeWallet?.address));
+
+onMounted(async () => {
+  await sleep(1000);
+
+  if (wallet.value) {
+    if (info.activeWallet?.address) {
+    }
+    wallet.value?.events.on('connect', () => {
+      login();
+    });
+    wallet.value?.events.on('accountsChanged', async (accounts: Events['accountsChanged']) => {
+      if (accounts.length) {
+        login();
+      }
+    });
+    wallet.value?.events.on('dataUpdated', ({ name, newValue }) => {
+      // console.debug('data', name, newValue);
+    });
+    wallet.value?.events.on('disconnect', () => {
+      // console.debug('disconnect');
+    });
+  }
+});
+
 function connectEmbeddedWallet() {
   modalWalletVisible.value = false;
 }
@@ -94,42 +123,28 @@ function connectEmbeddedWallet() {
 async function login() {
   loading.value = true;
   try {
-    if (!isConnected.value) {
-      await connect({ connector: connectors.value[0] });
-    } else {
-      await refetch();
-
-      if (!walletClient.value) {
-        await connect({ connector: connectors.value[0] });
-
-        if (!walletClient.value) {
-          error('Could not connect with wallet');
-          loading.value = false;
-          return;
-        }
-      }
-
-      if (!props.admin) {
-        loading.value = false;
-        return;
-      }
-
-      const timestamp = new Date().getTime();
-      const message = 'test';
-
-      const signature = await signMessage($wagmiConfig as Config, { message: `${message}\n${timestamp}` });
-
-      const res = await $api.post<LoginResponse>('/login', {
-        signature,
-        timestamp,
-        address: walletClient.value.account.address,
-      });
-      if (res.data.jwt) {
-        userStore.jwt = res.data.jwt;
-        $api.setToken(res.data.jwt);
-      }
-      modalWalletVisible.value = false;
+    if (!props.admin) {
+      loading.value = false;
+      return;
     }
+
+    const timestamp = new Date().getTime();
+    const message = `test\n${timestamp}`;
+
+    const signature = isConnected.value
+      ? await signMessage($wagmiConfig as Config, { message })
+      : await signEW(message);
+
+    const res = await $api.post<LoginResponse>('/login', {
+      signature,
+      timestamp,
+      address: walletAddress.value,
+    });
+    if (res.data.jwt) {
+      userStore.jwt = res.data.jwt;
+      $api.setToken(res.data.jwt);
+    }
+    modalWalletVisible.value = false;
   } catch (e) {
     handleError(e);
   }

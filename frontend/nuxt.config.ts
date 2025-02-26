@@ -1,5 +1,6 @@
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
+import mkcert from 'vite-plugin-mkcert';
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { Environments } from './lib/values/general.values';
@@ -17,6 +18,13 @@ const meta = {
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  devServer: {
+    // https: true,
+    https: {
+      key: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\dev.pem',
+      cert: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\cert.pem',
+    },
+  },
   runtimeConfig: {
     public: {
       ...CONFIG,
@@ -40,6 +48,10 @@ export default defineNuxtConfig({
   ],
 
   vite: {
+    server: {
+      allowedHosts: ['68ad-213-229-247-224.ngrok-free.app'],
+    },
+
     plugins: [
       AutoImport({
         imports: [
@@ -51,6 +63,7 @@ export default defineNuxtConfig({
       Components({
         resolvers: [NaiveUiResolver()],
       }),
+      mkcert(),
       nodePolyfills(),
       {
         name: 'vite-plugin-glob-transform',

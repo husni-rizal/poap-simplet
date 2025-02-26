@@ -99,10 +99,8 @@
 </template>
 
 <script lang="ts" setup>
-import dayjs from 'dayjs';
 import { PoapStatus } from '~/lib/types/poap';
 
-const router = useRouter();
 const { params } = useRoute();
 const userStore = useUserStore();
 const poapStore = usePoapDropStore();
@@ -132,17 +130,11 @@ onBeforeUnmount(() => {
 });
 
 function calculatePoapStatus() {
-  const currDate = dayjs(new Date());
-  const startTime = dayjs(poapStore.poapDrop?.startTime);
-  const endTime = dayjs(poapStore.poapDrop?.endTime);
-
-  if (currDate >= startTime && currDate <= endTime) {
-    poapStatus.value = PoapStatus.IN_PROGRESS;
-  } else if (currDate >= startTime) {
-    poapStatus.value = PoapStatus.FINISHED;
-    clearInterval(refreshEventTimeInterval);
-  } else {
-    poapStatus.value = PoapStatus.WAITING;
+  if (poapStore.poapDrop?.startTime && poapStore.poapDrop?.endTime) {
+    poapStatus.value = getPoapStatus(poapStore.poapDrop.startTime, poapStore.poapDrop.endTime);
+    if (poapStatus.value === PoapStatus.FINISHED) {
+      clearInterval(refreshEventTimeInterval);
+    }
   }
 }
 </script>

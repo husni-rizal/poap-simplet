@@ -134,10 +134,13 @@
   }
 }
 #kalm .nuxt-icon {
-  &.icon-auto svg {
-    width: auto;
-    height: auto;
+  &.icon-auto {
+    @apply max-w-full;
+    svg {
+      @apply w-auto h-auto max-w-full object-contain;
+    }
   }
+
   svg {
     margin-bottom: 0;
   }

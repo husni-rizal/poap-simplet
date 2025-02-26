@@ -21,6 +21,7 @@ declare global {
     status: number;
   };
   type SuccessResponse = GeneralResponse<{ success: boolean }>;
+  type TokenResponse = GeneralResponse<{ token: string }>;
 
   interface FetchParams {
     page?: number;

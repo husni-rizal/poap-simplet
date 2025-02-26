@@ -10,12 +10,7 @@ class Api {
     publicPath: '', // Aradena public api
   };
 
-  async post<T>(
-    path: string,
-    data?: any,
-    isPublic = false,
-    requestOptions?: RequestInit,
-  ) {
+  async post<T>(path: string, data?: any, isPublic = false, requestOptions?: RequestInit) {
     this.initSettings();
 
     const requestData = {
@@ -25,7 +20,7 @@ class Api {
 
     const response = await fetch(
       (isPublic ? this.settings.publicPath : this.settings.basePath) + path,
-      this.onRequest(requestData, requestOptions),
+      this.onRequest(requestData, requestOptions)
     );
 
     return this.onResponse<T>(response, { ...requestData, path });
@@ -37,7 +32,7 @@ class Api {
       [k: string]: string | number | boolean | null | Array<string | number>;
     },
     isPublic = false,
-    requestOptions?: RequestInit,
+    requestOptions?: RequestInit
   ) {
     this.initSettings();
 
@@ -46,18 +41,13 @@ class Api {
 
     const response = await fetch(
       (isPublic ? this.settings.publicPath : this.settings.basePath) + path + q,
-      this.onRequest(requestData, requestOptions),
+      this.onRequest(requestData, requestOptions)
     );
 
     return this.onResponse<T>(response, { ...requestData, path });
   }
 
-  async put<T>(
-    path: string,
-    data?: any,
-    isPublic = false,
-    requestOptions?: RequestInit,
-  ) {
+  async put<T>(path: string, data?: any, isPublic = false, requestOptions?: RequestInit) {
     this.initSettings();
 
     const requestData = {
@@ -67,18 +57,13 @@ class Api {
 
     const response = await fetch(
       (isPublic ? this.settings.publicPath : this.settings.basePath) + path,
-      this.onRequest(requestData, requestOptions),
+      this.onRequest(requestData, requestOptions)
     );
 
     return this.onResponse<T>(response, { ...requestData, path });
   }
 
-  async patch<T>(
-    path: string,
-    data?: any,
-    isPublic = false,
-    requestOptions?: RequestInit,
-  ) {
+  async patch<T>(path: string, data?: any, isPublic = false, requestOptions?: RequestInit) {
     this.initSettings();
 
     const requestData = {
@@ -88,7 +73,7 @@ class Api {
 
     const response = await fetch(
       (isPublic ? this.settings.publicPath : this.settings.basePath) + path,
-      this.onRequest(requestData, requestOptions),
+      this.onRequest(requestData, requestOptions)
     );
 
     return this.onResponse<T>(response, { ...requestData, path });
@@ -104,7 +89,7 @@ class Api {
 
     const response = await fetch(
       (isPublic ? this.settings.publicPath : this.settings.basePath) + path,
-      this.onRequest(requestData, requestOptions),
+      this.onRequest(requestData, requestOptions)
     );
 
     return this.onResponse(response, { ...requestData, path });
@@ -175,14 +160,11 @@ class Api {
      * Log them out and redirect to login page.
      */
     if (user.loggedIn) {
-      // user.logout();
+      user.logout();
     }
 
     router.push({
       path: '/',
-      query: {
-        to: getEncodedPathAndQuery(route),
-      },
     });
   }
 }

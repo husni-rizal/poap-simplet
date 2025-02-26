@@ -34,13 +34,16 @@
 
 <script lang="ts" setup>
 import { useAccount } from '@wagmi/vue';
+import { useAccount as useAccountEW } from '@apillon/wallet-vue';
 
-const { isConnected } = useAccount();
 const userStore = useUserStore();
 const poapStore = usePoapDropStore();
 
+const { info } = useAccountEW();
+const { isConnected } = useAccount();
+
 const modalPoapVisible = ref(false);
-const isLoggedIn = computed(() => isConnected.value && userStore.jwt);
+const isLoggedIn = computed(() => (isConnected.value || !!info.activeWallet?.address) && userStore.jwt);
 
 const poapDrops = [
   'Create digital keepsakes to commemorate special events',

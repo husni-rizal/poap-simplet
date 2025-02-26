@@ -1,5 +1,7 @@
 import type { PaginationProps } from 'naive-ui';
 import { PageSize, PAGINATION_LIMIT } from '../values/general.values';
+import { PoapStatus } from '../types/poap';
+import dayjs from 'dayjs';
 
 export function sleep(timeMs = 1000) {
   return new Promise(resolve => setTimeout(resolve, timeMs));
@@ -104,4 +106,16 @@ export function createPagination(remote = true) {
       return `${itemCount} total`;
     },
   } as PaginationProps;
+}
+
+export function getPoapStatus(start: string, end: string) {
+  const currDate = dayjs(new Date());
+  const startTime = dayjs(start);
+  const endTime = dayjs(end);
+
+  return currDate >= startTime && currDate > endTime
+    ? PoapStatus.FINISHED
+    : currDate >= startTime
+      ? PoapStatus.IN_PROGRESS
+      : PoapStatus.WAITING;
 }
