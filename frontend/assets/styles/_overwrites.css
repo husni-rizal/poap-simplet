@@ -45,6 +45,9 @@
     }
   }
 
+  #oaw-wallet-widget-btn {
+    @apply invisible absolute -z-1;
+  }
   .oaw-btn-default-style {
     @apply h-12 border border-bg-lighter text-yellow bg-transparent w-full text-[0px];
 

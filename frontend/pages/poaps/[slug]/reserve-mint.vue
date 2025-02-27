@@ -15,11 +15,11 @@
       </div>
     </div>
     <div class="frame-border h-full min-h-60 flex flex-col justify-evenly gap-5 p-6 text-center">
-      <div v-if="isTokenValid">
-        <p>QR code is invalid or has expired. Scan QR code again...</p>
+      <div v-if="!isTokenValid">
+        <p>Token is invalid or has expired...</p>
       </div>
       <div v-else-if="dropReserved">
-        <p>You have successfully reserved nft airdrop. Check your mail for instructions on how to mint.</p>
+        <p>You have successfully reserved NFT. Check your mail for instructions on how to mint.</p>
       </div>
       <template v-else>
         <h2 class="text-3xl mt-2">Enter your email to reserve NFT</h2>

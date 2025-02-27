@@ -36,4 +36,9 @@ declare global {
     key: string | number;
     value: string | number;
   };
+
+  type LoginInterface = {
+    jwt: string;
+  };
+  type LoginResponse = GeneralResponse<LoginInterface>;
 }

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useAccount, useConnect, useConnectorClient, type Config } from '@wagmi/vue';
-import { signMessage } from '@wagmi/vue/actions';
 import SuccessSVG from '~/assets/images/success.svg';
 
 definePageMeta({
@@ -12,13 +10,9 @@ useHead({
 
 const { query } = useRoute();
 const router = useRouter();
-const message = useMessage();
+const { success } = useMessage();
 const { handleError } = useErrors();
-
-const { address, isConnected, isConnecting } = useAccount();
-const { data: walletClient, refetch } = useConnectorClient();
-const { connect, connectors } = useConnect();
-const { $wagmiConfig } = useNuxtApp();
+const { connected, walletAddress, sign } = useWalletConnect();
 
 const loading = ref<boolean>(false);
 const claimed = ref<boolean>(false);
@@ -33,15 +27,18 @@ async function claimAirdrop() {
   loading.value = true;
   try {
     const timestamp = new Date().getTime();
-    const signature = await signMessage($wagmiConfig as Config, { message: `test\n${timestamp}` });
+    const message = `test\n${timestamp}`;
+
+    const signature = await sign(message);
+
     const res = await $api.post<SuccessResponse>('/claim', {
-      jwt: query.token?.toString() || '',
+      jwt: query.token,
       signature,
-      address: address.value,
+      address: walletAddress.value,
       timestamp,
     });
     if (res.data && res.data.success) {
-      message.success('You successfully claimed NFT');
+      success('You successfully claimed NFT');
       claimed.value = true;
     }
   } catch (e) {
@@ -53,7 +50,7 @@ async function claimAirdrop() {
 
 <template>
   <!--<FormShare v-if="claimed" />-->
-  <div v-if="claimed">
+  <div v-if="claimed" class="max-w-md w-full md:px-6 my-12 mx-auto">
     <img :src="SuccessSVG" class="mx-auto" width="165" height="169" alt="airdrop" />
 
     <div class="my-8 text-center">
@@ -72,9 +69,7 @@ async function claimAirdrop() {
       </p>
     </div>
 
-    <Btn v-if="!isConnected" size="large" :loading="isConnecting" @click="connect({ connector: connectors[0] })">
-      Connect wallet
-    </Btn>
+    <WalletConnect v-if="!connected" size="large" />
     <Btn v-else size="large" :loading="loading" @click="claimAirdrop()">Claim airdrop</Btn>
   </div>
 </template>

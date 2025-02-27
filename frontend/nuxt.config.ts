@@ -35,7 +35,7 @@ export default defineNuxtConfig({
   components: ['~/components/general', '~/components/parts'],
 
   imports: {
-    dirs: ['composables/', 'composables/stores/**', 'lib/utils/**'],
+    dirs: ['composables/', 'stores/', 'lib/utils/'],
   },
 
   modules: [
