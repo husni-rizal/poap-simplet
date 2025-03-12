@@ -5,6 +5,8 @@ import { VueQueryPlugin } from '@tanstack/vue-query';
 import { metaMask, coinbaseWallet, walletConnect } from '@wagmi/vue/connectors';
 
 export default defineNuxtPlugin(nuxtApp => {
+  const config = useRuntimeConfig();
+  console.log(config.public);
   const chains: readonly [Chain, ...Chain[]] = [moonbeam, moonbaseAlpha];
 
   const transports = chains.reduce((acc, chain) => {
@@ -12,21 +14,23 @@ export default defineNuxtPlugin(nuxtApp => {
     return acc;
   }, {});
 
+  const connectors = [
+    metaMask({
+      dappMetadata: {
+        name: 'LendeeFi Metamask wallet',
+      },
+    }),
+    coinbaseWallet({
+      appName: 'Apillon Prebuild solution',
+    }),
+  ];
+  if (config.public.WALLET_CONNECT_PROJECT) {
+    connectors.push(walletConnect({ projectId: config.public.WALLET_CONNECT_PROJECT }));
+  }
+
   const wagmiConfig = createConfig({
     chains,
-    connectors: [
-      metaMask({
-        dappMetadata: {
-          name: 'LendeeFi Metamask wallet',
-        },
-      }),
-      coinbaseWallet({
-        appName: 'Apillon Prebuild solution',
-      }),
-      walletConnect({
-        projectId: 'fefd3005e5f3b8fd2e73de5333eeccf9',
-      }),
-    ],
+    connectors,
     multiInjectedProviderDiscovery: false,
     storage: createStorage({ storage: window.sessionStorage }),
     transports,

@@ -2,7 +2,6 @@ import { useAccount, useDisconnect, type Config } from '@wagmi/vue';
 import { useAccount as useAccountEW, useWallet } from '@apillon/wallet-vue';
 import { signMessage } from '@wagmi/vue/actions';
 import { moonbeam, moonbaseAlpha } from '@wagmi/vue/chains';
-import { Environments } from '~/lib/values/general.values';
 
 export default function useWalletConnect() {
   const config = useRuntimeConfig();
@@ -20,7 +19,7 @@ export default function useWalletConnect() {
 
   const loading = ref<boolean>(false);
   const modalWalletVisible = ref<boolean>(false);
-  const network = config.public.ENV === Environments.prod ? moonbeam : moonbaseAlpha;
+  const network = config.public.CHAIN_ID === moonbeam.id ? moonbeam : moonbaseAlpha;
 
   const connected = computed(() => isConnected.value || !!info.activeWallet?.address);
   const walletAddress = computed(() => (isConnected.value ? address.value : info.activeWallet?.address));

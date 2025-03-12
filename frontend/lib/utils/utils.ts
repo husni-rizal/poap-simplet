@@ -1,25 +1,8 @@
-import dev from '../config/development';
-import stg from '../config/staging';
-import prod from '../config/production';
-import { Environments, ON_COLUMN_CLICK_OPEN_CLASS, PAGINATION_LIMIT } from '../values/general.values';
-import { ConfigInterface } from 'lib/types/general.types';
+import { ON_COLUMN_CLICK_OPEN_CLASS, PAGINATION_LIMIT } from '../values/general.values';
 
 /** Check if any of elements contains class ${ON_COLUMN_CLICK_OPEN_CLASS}, which means this column is clickable */
 export function canOpenColumnCell(path: EventTarget[]) {
   return path.some((item: EventTarget) => (item as HTMLElement)?.className?.includes(ON_COLUMN_CLICK_OPEN_CLASS));
-}
-
-export function getConfig(): ConfigInterface {
-  const env = process.env.ENV ? process.env.ENV : process.env.NODE_ENV;
-
-  let CONFIG = dev;
-  if (env === Environments.prod) {
-    CONFIG = prod;
-  } else if (env === Environments.stg) {
-    CONFIG = stg;
-  }
-
-  return CONFIG;
 }
 
 export function apiErrorToMsg(error: any) {

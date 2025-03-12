@@ -4,11 +4,9 @@ import mkcert from 'vite-plugin-mkcert';
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { Environments } from './lib/values/general.values';
-import { getConfig } from './lib/utils/utils';
+import { moonbaseAlpha } from 'viem/chains';
 
 const env = process.env.ENV ? process.env.ENV : process.env.NODE_ENV;
-
-const CONFIG = getConfig();
 
 const meta = {
   title: 'Apillon POA prebuild solution',
@@ -27,7 +25,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      ...CONFIG,
+      API_BASE: process.env.API_BASE,
+      CHAIN_ID: process.env.CHAIN_ID ? Number(process.env.CHAIN_ID) : moonbaseAlpha.id,
+      EMBEDDED_WALLET_CLIENT: process.env.EMBEDDED_WALLET_CLIENT,
+      WALLET_CONNECT_PROJECT: process.env.WALLET_CONNECT_PROJECT,
       ENV: env || Environments.dev,
     },
   },

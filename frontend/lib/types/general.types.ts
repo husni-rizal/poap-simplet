@@ -1,9 +1,4 @@
-export interface ConfigInterface {
-  APP_URL: string;
-  API_BASE: string;
-  CHAIN_ID: number;
-  EMBEDDED_WALLET_CLIENT: string;
-}
+export default {};
 
 declare global {
   /** Response */

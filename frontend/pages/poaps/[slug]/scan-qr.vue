@@ -36,7 +36,6 @@
 <script lang="ts" setup>
 import { PoapStatus } from '~/lib/types/poap';
 
-const config = getConfig();
 const { params, query } = useRoute();
 const poapStore = usePoapDropStore();
 
@@ -46,7 +45,9 @@ const loading = ref(true);
 const poapStatus = ref();
 const token = ref('');
 const timer = ref(5);
-const qrCodeText = computed<string>(() => `${config.APP_URL}/poaps/${poapId.value}/reserve-mint?token=${token.value}`);
+const qrCodeText = computed<string>(
+  () => `${window.location.origin}/poaps/${poapId.value}/reserve-mint?token=${token.value}`
+);
 
 /** Website ID from route */
 const poapId = ref<string>(`${params?.slug}`);
