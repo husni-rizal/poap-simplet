@@ -1,38 +1,60 @@
 <template>
-  <div>
-    <div v-if="isLoggedIn" class="grid justify-items-center">
-      <h1>Existing POAP drops</h1>
-      <div v-if="poapStore.poaps" class="flex flex-col mt-8">
-        <div v-if="poapStore.poaps?.items?.length != 0">
-          <n-data-table
-            :columns="columns"
-            :data="poapStore.poaps.items"
-            :pagination="pagination"
-            :bordered="false"
-            :row-props="rowProps"
-            @update:page="handlePageChange"
-          />
+  <div class="container">
+    <div v-if="isLoggedIn" class="max-w-5xl mx-auto justify-items-center">
+      <h1>Your PoAP drops</h1>
+      <div v-if="poapStore.poapDrops" class="w-full mt-8">
+        <TablePoapDrops class="card" />
+        <div class="text-center mt-8">
+          <Btn type="primary" @click="modalPoapVisible = true">Create new PoAP</Btn>
         </div>
-        <span v-if="poapStore.poaps.items.length == 0">You dont have any POAP drops yet.</span>
-        <Btn type="primary" class="mt-8" @click="router.push('create-poap')">Create new poap</Btn>
       </div>
     </div>
+    <div v-else>
+      <div class="max-w-2xl mx-auto mb-10 text-center">
+        <h1>POAP drops</h1>
+        <p>
+          You can use this page to create digital keepsakes to commemorate special events and distribute them to your
+          audience for their attendance.
+        </p>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-x-12 gap-y-6 text-center mb-12">
+        <div v-for="(content, key) in poapDrops" class="card-dark flex flex-col gap-12 items-center">
+          <NuxtIcon :name="`poap-drops-${key + 1}`" class="icon-auto" filled />
+          <p>{{ content }}</p>
+        </div>
+      </div>
+    </div>
+    <ModalPoap
+      :show="modalPoapVisible"
+      @close="() => (modalPoapVisible = false)"
+      @update:show="modalPoapVisible = false"
+    ></ModalPoap>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useAccount } from 'use-wagmi';
-import { h } from 'vue';
-import { DataTableColumns, NButton, NDropdown, PaginationProps } from 'naive-ui';
-import { ON_COLUMN_CLICK_OPEN_CLASS, PAGINATION_LIMIT } from '~/lib/values/general.values';
+import { useAccount } from '@wagmi/vue';
+import { useAccount as useAccountEW } from '@apillon/wallet-vue';
 
-useNuxtApp();
-const router = useRouter();
-const { isConnected } = useAccount();
 const userStore = useUserStore();
 const poapStore = usePoapDropStore();
 
-const isLoggedIn = computed(() => isConnected.value && userStore.jwt);
+const { info } = useAccountEW();
+const { isConnected } = useAccount();
+
+const modalPoapVisible = ref(false);
+const isLoggedIn = computed(() => (isConnected.value || !!info.activeWallet?.address) && userStore.jwt);
+
+const poapDrops = [
+  'Create digital keepsakes to commemorate special events',
+  'Display QR code somewhere on your event grounds. ',
+  'Visitors scan randomly generated time-dependent QR codes  and reserve the NFTs.',
+];
+
+useHead({
+  title: 'Apillon Proof of attendance prebuilt solution',
+  titleTemplate: '',
+});
 
 onMounted(async () => {
   if (isLoggedIn.value) {
@@ -48,101 +70,4 @@ watch(
     }
   }
 );
-
-const pagination = computed(() => {
-  return {
-    pageSize: PAGINATION_LIMIT,
-  };
-});
-const columns: DataTableColumns<any> = [
-  {
-    title: 'Title',
-    key: 'title',
-    minWidth: 150,
-    className: ON_COLUMN_CLICK_OPEN_CLASS,
-  },
-  {
-    title: 'Description',
-    key: 'description',
-  },
-  {
-    key: 'startTime',
-    title: 'Start date',
-    minWidth: 200,
-    render(row: any) {
-      return h('span', {}, { default: () => datetimeToDateAndTime(row.startTime.toString()) });
-    },
-  },
-  {
-    key: 'endTime',
-    title: 'End date',
-    minWidth: 200,
-    render(row: any) {
-      return h('span', {}, { default: () => datetimeToDateAndTime(row.endTime.toString()) });
-    },
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    align: 'right',
-    className: '!py-0',
-    render(row: any) {
-      return h(
-        NDropdown,
-        {
-          options: dropdownOptions(row),
-          trigger: 'click',
-        },
-        {
-          default: () =>
-            h(
-              NButton,
-              { type: 'tertiary', size: 'small', quaternary: true, round: true },
-              {
-                default: () => h(resolveComponent('i'), { class: 'icon-more text-xl' }, ''),
-              }
-            ),
-        }
-      );
-    },
-  },
-];
-
-function rowProps(row: any) {
-  return {
-    onClick: (e: Event) => {
-      console.info('row', row);
-      if (canOpenColumnCell(e.composedPath())) {
-        navigateToPoapDrop(row);
-      }
-    },
-  };
-}
-
-async function handlePageChange(currentPage: number) {
-  await poapStore.getPoapDrops({ page: currentPage });
-}
-
-useHead({
-  title: 'Apillon Proof of attendance prebuilt solution',
-  titleTemplate: '',
-});
-
-const dropdownOptions = (poapDrop: any) => {
-  return [
-    {
-      label: 'View',
-      key: 'view',
-      props: {
-        onClick: () => {
-          navigateToPoapDrop(poapDrop);
-        },
-      },
-    },
-  ];
-};
-
-function navigateToPoapDrop(poapDrop: any) {
-  router.push(`/poaps/${poapDrop.id}`);
-}
 </script>

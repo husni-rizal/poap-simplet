@@ -10,7 +10,7 @@ import { NaiveTheme } from '~/lib/config/naive';
       :theme="darkTheme"
       class="flex h-full flex-col"
     >
-      <n-message-provider>
+      <n-message-provider placement="bottom-right">
         <NuxtLayout>
           <NuxtPage />
         </NuxtLayout>

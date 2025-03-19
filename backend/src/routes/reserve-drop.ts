@@ -69,6 +69,7 @@ export async function resolve(req: Request, res: Response): Promise<void> {
   );
 
   try {
+    console.warn(`${env.APP_URL}/claim?token=${emailAirdropToken}`)
     //Send email
     await SmtpSendTemplate(
       [dropReservation.email],

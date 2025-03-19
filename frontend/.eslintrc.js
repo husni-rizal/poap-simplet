@@ -4,12 +4,7 @@ module.exports = {
     browser: true,
     node: true,
   },
-  extends: [
-    '@nuxtjs/eslint-config-typescript',
-    'plugin:nuxt/recommended',
-    'plugin:vue/vue3-recommended',
-    'prettier',
-  ],
+  extends: ['@nuxtjs/eslint-config-typescript', 'plugin:nuxt/recommended', 'plugin:vue/vue3-recommended', 'prettier'],
   plugins: ['prettier'],
   rules: {
     'vue/no-v-html': 0,
@@ -23,8 +18,7 @@ module.exports = {
     'vue/no-v-for-template-key': 0,
     'prefer-regex-literals': 0,
     'no-console': process.env.ENV === 'production' || process.env.NODE_ENV === 'production' ? 2 : 0,
-    'no-debugger':
-      process.env.ENV === 'production' || process.env.NODE_ENV === 'production' ? 2 : 0,
+    'no-debugger': process.env.ENV === 'production' || process.env.NODE_ENV === 'production' ? 2 : 0,
     'prettier/prettier': [
       'error',
       {

@@ -1,12 +1,12 @@
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
+import mkcert from 'vite-plugin-mkcert';
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { Environments } from './lib/values/general.values';
-import { getConfig } from './lib/utils/utils';
+import { moonbaseAlpha } from 'viem/chains';
 
 const env = process.env.ENV ? process.env.ENV : process.env.NODE_ENV;
-
-const CONFIG = getConfig();
 
 const meta = {
   title: 'Apillon POA prebuild solution',
@@ -16,9 +16,19 @@ const meta = {
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  devServer: {
+    // https: true,
+    https: {
+      key: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\dev.pem',
+      cert: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\cert.pem',
+    },
+  },
   runtimeConfig: {
     public: {
-      API_BASE: CONFIG.API_BASE || 'http://localhost:3001/',
+      API_BASE: process.env.API_BASE,
+      CHAIN_ID: process.env.CHAIN_ID ? Number(process.env.CHAIN_ID) : moonbaseAlpha.id,
+      EMBEDDED_WALLET_CLIENT: process.env.EMBEDDED_WALLET_CLIENT,
+      WALLET_CONNECT_PROJECT: process.env.WALLET_CONNECT_PROJECT,
       ENV: env || Environments.dev,
     },
   },
@@ -26,7 +36,7 @@ export default defineNuxtConfig({
   components: ['~/components/general', '~/components/parts'],
 
   imports: {
-    dirs: ['composables/', 'composables/stores/**', 'lib/utils/**'],
+    dirs: ['composables/', 'stores/', 'lib/utils/'],
   },
 
   modules: [
@@ -39,6 +49,10 @@ export default defineNuxtConfig({
   ],
 
   vite: {
+    server: {
+      allowedHosts: ['68ad-213-229-247-224.ngrok-free.app'],
+    },
+
     plugins: [
       AutoImport({
         imports: [
@@ -47,10 +61,20 @@ export default defineNuxtConfig({
           },
         ],
       }),
-
       Components({
         resolvers: [NaiveUiResolver()],
       }),
+      mkcert(),
+      nodePolyfills(),
+      {
+        name: 'vite-plugin-glob-transform',
+        transform(code: string, id: string) {
+          if (id.includes('nuxt-icons')) {
+            return code.replace(/as:\s*['"]raw['"]/g, 'query: "?raw", import: "default"');
+          }
+          return code;
+        },
+      },
     ],
 
     optimizeDeps: {
@@ -67,7 +91,9 @@ export default defineNuxtConfig({
         ? ['naive-ui', 'vueuc', '@css-render/vue3-ssr', '@juggle/resize-observer']
         : ['@juggle/resize-observer'],
   },
+
   ssr: false,
+
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
@@ -82,12 +108,20 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#070707' },
         { name: 'description', content: meta.description, hid: 'description' },
         { name: 'og:title', content: meta.title, hid: 'og:title' },
-        { name: 'og:description', content: meta.description, hid: 'og:description' },
+        {
+          name: 'og:description',
+          content: meta.description,
+          hid: 'og:description',
+        },
         { name: 'og:url', content: meta.url, hid: 'og:url' },
         // { name: 'og:image', content: meta.image },
         { name: 'og:type', content: 'website' },
         { name: 'twitter:title', content: meta.title, hid: 'twitter:title' },
-        { name: 'twitter:description', content: meta.description, hid: 'twitter:description' },
+        {
+          name: 'twitter:description',
+          content: meta.description,
+          hid: 'twitter:description',
+        },
         { name: 'twitter:url', content: meta.url, hid: 'twitter:url' },
         { name: 'twitter:card', content: 'summary_large_image' },
       ],
@@ -111,4 +145,5 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
+  compatibilityDate: '2025-02-21',
 });

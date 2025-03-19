@@ -28,7 +28,9 @@ class Api {
 
   async get<T>(
     path: string,
-    query?: { [k: string]: string | number | boolean | null | Array<string | number> },
+    query?: {
+      [k: string]: string | number | boolean | null | Array<string | number>;
+    },
     isPublic = false,
     requestOptions?: RequestInit
   ) {
@@ -161,11 +163,8 @@ class Api {
       user.logout();
     }
 
-    router.replace({
+    router.push({
       path: '/',
-      query: {
-        to: getEncodedPathAndQuery(route),
-      },
     });
   }
 }

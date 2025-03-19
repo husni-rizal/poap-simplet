@@ -1,54 +1,59 @@
 <template>
-  <div v-if="poapStore.poap" class="grid justify-items-center">
-    <div v-if="dropReserved == true">
-      <p>
-        You have successfully reserved nft airdrop. Check your mail for instructions on how to mint.
-      </p>
-    </div>
-
-    <div v-if="dropReserved != true">
-      <div v-if="isTokenValid == false" class="flex flex-col">
-        <p>QR code is invalid or has expired. Scan QR code again...</p>
+  <div v-if="loading">
+    <Spinner :size="64" />
+  </div>
+  <div v-else-if="poapStore.poapDrop" class="frame max-w-sm mx-auto min-h-[calc(100vh-190px)]">
+    <div class="absolute bottom-full left-1/2 -translate-x-1/2 -translate-y-full lg:mb-2">
+      <div class="max-w-sm flex justify-between items-center gap-4 text-white text-sm font-bold">
+        <NuxtLink :to="`/poaps/${poapId}`">
+          <NuxtIcon name="back" class="text-2xl" />
+        </NuxtLink>
+        <n-ellipsis class="align-bottom leading-normal" :line-clamp="1">{{ poapStore.poapDrop.website }}</n-ellipsis>
+        <button class="ml-2 -mt-1 -mb-3" @click="copyToClipboard(poapStore.poapDrop.website)">
+          <span class="icon-copy text-lg"></span>
+        </button>
       </div>
-      <div v-if="isTokenValid == true" style="width: 500px">
-        <h1>Enter your email to reserve NFT</h1>
-        <n-form
-          ref="formRef"
-          :model="formData"
-          :rules="rules"
-          class="mt-8"
-          @submit.prevent="handleSubmit"
-        >
+    </div>
+    <div class="frame-border h-full min-h-60 flex flex-col justify-evenly gap-5 p-6 text-center">
+      <div v-if="!isTokenValid">
+        <p>Token is invalid or has expired...</p>
+      </div>
+      <div v-else-if="dropReserved">
+        <p>You have successfully reserved NFT. Check your mail for instructions on how to mint.</p>
+      </div>
+      <template v-else>
+        <h2 class="text-3xl mt-2">Enter your email to reserve NFT</h2>
+        <p>Once you have entered your e-mail address, you will receive instructions on how to claim NFT.</p>
+        <n-form ref="formRef" :model="formData" class="text-left mt-2" :rules="rules" @submit.prevent="handleSubmit">
           <!--  Project Quota value -->
-          <n-form-item
-            path="email"
-            label="Enter your email to receive instructions"
-            :label-props="{ for: 'email' }"
-          >
-            <n-input v-model:value="formData.email" clearable />
+          <n-form-item path="email" :show-label="false">
+            <n-input v-model:value="formData.email" placeholder="Enter your email" clearable />
           </n-form-item>
 
           <!--  Form submit -->
-          <n-form-item class="flex justify-center">
+          <n-form-item :show-label="false" :show-feedback="false">
             <input type="submit" class="hidden" />
-            <Btn type="primary" :loading="loading" @click="handleSubmit"> Proceed </Btn>
+            <Btn size="large" type="primary" :loading="loading" @click="handleSubmit"> Proceed </Btn>
           </n-form-item>
         </n-form>
 
-        <div class="mt-16 flex flex-col items-center">
-          <h2>Time to reserve</h2>
+        <div class="flex flex-col items-center mb-8">
+          <p>{{ timer }} min left</p>
           <n-progress
-            class="mt-4"
+            class="mt-1"
             type="line"
             :percentage="tokenValidityInPercent"
-            :height="24"
+            :height="6"
             :border-radius="4"
             :fill-border-radius="0"
             :show-indicator="false"
           />
-          <p>5 min</p>
         </div>
-      </div>
+        <h4>{{ poapStore.poapDrop.title }}</h4>
+        <HorizontalSlider class="flex gap-2">
+          <img v-for="i in 5" :key="i" :src="`/images/nfts/${i}.png`" class="h-32 rounded-lg pointer-events-none" />
+        </HorizontalSlider>
+      </template>
     </div>
   </div>
 </template>
@@ -56,11 +61,9 @@
 <script lang="ts" setup>
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
-import { FormInst, FormRules, FormValidationError } from 'naive-ui/es/form';
+import type { FormInst, FormRules, FormValidationError } from 'naive-ui/es/form';
+import type { PoapReservationResponse } from '~/lib/types/poap';
 
-definePageMeta({
-  layout: 'reserve',
-});
 useHead({
   title: 'Apillon POAP prebuilt solution',
 });
@@ -75,7 +78,10 @@ const tokenValidityInPercent = ref(100);
 const dropReserved = ref(false);
 let calcRemainingTimeInterval: any = null as any;
 
+const poapId = ref<string>(`${params?.slug}`);
 const token = query.token?.toString();
+
+const timer = computed(() => Math.ceil(tokenValidityInPercent.value / 20));
 
 const formRef = ref<FormInst | null>(null);
 const formData = reactive<any>({
@@ -96,9 +102,7 @@ function handleSubmit(e: Event | MouseEvent) {
   e.preventDefault();
   formRef.value?.validate((errors: Array<FormValidationError> | undefined) => {
     if (errors) {
-      errors.map(fieldErrors =>
-        fieldErrors.map(error => message.warning(error.message || 'Error'))
-      );
+      errors.map(fieldErrors => fieldErrors.map(error => message.warning(error.message || 'Error')));
     } else {
       reserveMint();
     }
@@ -108,23 +112,16 @@ function handleSubmit(e: Event | MouseEvent) {
 onMounted(() => {
   if (token) {
     const decoded = jwtDecode(token);
-    console.info(decoded);
 
-    const tokenIssueDate = dayjs(decoded.iat * 1000);
-    // Token should not be older than 7 seconds (7000 ms)
-    if (dayjs() - tokenIssueDate > 7000) {
-      console.log('Token is too old!');
-      isTokenValid.value = false;
-    } else {
-      console.log('Token is OK!');
-      isTokenValid.value = true;
-    }
+    const tokenIssueDate = Number(dayjs(decoded.iat * 1000));
 
-    if (!poapStore.poap) poapStore.getPoapDrop(params?.slug);
+    isTokenValid.value = Number(dayjs()) - tokenIssueDate < 7000;
+
+    if (!poapStore.poapDrop) poapStore.getPoapDrop(poapId.value);
 
     calcRemainingTimeInterval = setInterval(() => {
       const currDate = dayjs();
-      const tokenAgeInMs = currDate - tokenIssueDate;
+      const tokenAgeInMs = Number(currDate) - tokenIssueDate;
 
       tokenValidityInPercent.value = 100 - (tokenAgeInMs * 100) / 300000;
 
@@ -134,7 +131,9 @@ onMounted(() => {
         clearInterval(calcRemainingTimeInterval);
       }
     }, 1000);
-  } else isTokenValid.value = false;
+  } else {
+    isTokenValid.value = false;
+  }
 });
 
 onBeforeUnmount(() => {
@@ -144,13 +143,13 @@ onBeforeUnmount(() => {
 async function reserveMint() {
   loading.value = true;
   try {
-    const res: any = await $api.post(`/poap-drops/${params.slug}/reserve-drop`, formData);
-    if (res.data.id) {
+    const { data } = await $api.post<PoapReservationResponse>(`/poap-drops/${params.slug}/reserve-drop`, formData);
+    if (data.id) {
       dropReserved.value = true;
       clearInterval(calcRemainingTimeInterval);
     }
   } catch (err: any) {
-    handleError();
+    handleError(err);
     // message.error(`Error reserving mint. ${apiErrorToMsg(err.data)}`);
   }
 
