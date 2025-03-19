@@ -42,7 +42,7 @@ export default defineNuxtConfig({
   modules: [
     ['@nuxtjs/tailwindcss', { cssPath: '~/assets/styles/index.css' }],
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@vueuse/nuxt',
     'nuxt-icons',
     '@nuxtjs/google-fonts',

@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', {
 
   persist: {
     key: WebStorageKeys.USER,
-    storage: persistedState.localStorage,
+    storage: piniaPluginPersistedstate.localStorage(),
     pick: ['jwt', 'userId', 'username', 'email'],
-  },
+  } as any,
 });
