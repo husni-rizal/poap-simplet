@@ -18,10 +18,10 @@ const meta = {
 export default defineNuxtConfig({
   devServer: {
     // https: true,
-    https: {
-      key: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\dev.pem',
-      cert: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\cert.pem',
-    },
+    // https: {
+    //   key: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\dev.pem',
+    //   cert: 'C:\\Users\\Urban\\.vite-plugin-mkcert\\cert.pem',
+    // },
   },
   runtimeConfig: {
     public: {
