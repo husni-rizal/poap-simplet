@@ -1,14 +1,18 @@
-# Apillon prebuilt solution - Proof of attendance (POA)
+# Apillon prebuilt solution - Discord bot for token gating
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/Apillon?style=social)](https://twitter.com/intent/follow?screen_name=Apillon)
+This discord bot should allow you to give exclusive access to specific token / NFT holders, using Apillon platform and its developer tools.
+It should allow you to:
 
-Prebuilt solution for creating proof of attendance (POA) with NFTs, using Apillon platform and it's developer tools.
+Define which NFT collection someone should have to access the server,
+Define the minimum free balance of a specific asset someone should have to access certain channels,
+and other upcoming features!
+Disclaimer: Use it at your own risk!
 
 ## Overview
 
 Apillon prebuilt solutions are plug and play applications which can be deployed to production, with minimum modifications required.
 
-This ready-made solution is designed to help you give out digital collectibles (called NFTs) to attendances on an event.
+This ready-made solution is designed to help you setup your own exclusive server to a targeted user (owner of an NFT collection, holder of an X token, etc.)
 
 ## Getting started
 
